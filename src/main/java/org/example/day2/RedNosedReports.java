@@ -17,20 +17,19 @@ public class RedNosedReports {
         int initialDifference = ints[0] - ints[1];
         int initialDistance = Math.abs(initialDifference);
         if (!isValidDistance(initialDistance)) return false;
-        boolean sequenceIncreasing = initialDifference > 0;
+        boolean sequenceDecreasing = initialDifference > 0;
         for (int i = 0; i < ints.length - 1; i++) {
             int currentDifference = ints[i] - ints[i + 1];
             // check if the sequence is either increasing or decreasing at all times
-            if (!sequenceHasSameDirection(currentDifference > 0, sequenceIncreasing)) return false;
+            if (!sequenceHasSameDirection(currentDifference > 0, sequenceDecreasing)) return false;
             int currentDistance = Math.abs(currentDifference);
-            boolean validDistance = isValidDistance(currentDistance);
-            if (!validDistance) return false;
+            if (!isValidDistance(currentDistance)) return false;
         }
         return true;
     };
     private static final Predicate<int[]> validRportCountTolerantPredicate = ints -> {
-        List<Integer> report = Arrays.stream(ints).boxed().toList();
         if (!validReportPredicate.test(ints)) {
+            List<Integer> report = Arrays.stream(ints).boxed().toList();
             for (int i = 0; i < report.size(); i++) {
                 //create a copyOfReport.remove(currentElement)
                 List<Integer> reportCopy = new ArrayList<>(report);
@@ -43,41 +42,32 @@ public class RedNosedReports {
         }
         return false;
     };
+
     private static boolean isValidDistance(int distance) {
-       return  (distance != 0) && (distance <= MAX_DISTANCE) && (distance >= MIN_DISTANCE);
+        return (distance <= MAX_DISTANCE) && (distance >= MIN_DISTANCE);
     }
+
     private static boolean sequenceHasSameDirection(boolean currentDirection, boolean previousDirection) {
         return currentDirection == previousDirection;
     }
-    private static int safeReportsCount() {
+
+    private static List<int[]> extractAndFilterReports(Predicate<int[]>... predicates) {
         List<int[]> validReports = Collections.emptyList();
+        Predicate<int[]> combinedPredicate = Arrays.stream(predicates).reduce(p -> false, Predicate::or);
         try (BufferedReader br = new BufferedReader(new FileReader("src/main/java/org/example/day2/input1.txt"))) {
             validReports = br.lines()
                     .map(line -> line.split("\\s+"))
                     .map(line -> Arrays.stream(line).mapToInt(Integer::parseInt).toArray())
-                    .filter(validReportPredicate)
+                    .filter(combinedPredicate)
                     .collect(Collectors.toList());
         } catch (IOException e) {
-
+            return Collections.emptyList();
         }
-        return validReports.size();
+        return validReports;
     }
 
-    private static int tolerantSafeReportCount() {
-        List<int[]> validReports = Collections.emptyList();
-        try (BufferedReader br = new BufferedReader(new FileReader("src/main/java/org/example/day2/input1.txt"))) {
-            validReports = br.lines()
-                    .map(line -> line.split("\\s+"))
-                    .map(line -> Arrays.stream(line).mapToInt(Integer::parseInt).toArray())
-                    .filter(validRportCountTolerantPredicate)
-                    .collect(Collectors.toList());
-        } catch (IOException e) {
-
-        }
-        return validReports.size() + safeReportsCount();
-    }
     public static void main(String[] args) {
-        System.out.println(safeReportsCount());
-        System.out.println(tolerantSafeReportCount());
+        System.out.println(extractAndFilterReports(validReportPredicate).size());
+        System.out.println(extractAndFilterReports(validReportPredicate, validRportCountTolerantPredicate).size());
     }
 }

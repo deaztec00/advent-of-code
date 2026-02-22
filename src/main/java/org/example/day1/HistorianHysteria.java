@@ -8,8 +8,10 @@ import java.util.Collections;
 import java.util.List;
 
 public class HistorianHysteria {
-    private static int distanceCounterPart1() {
-        int distance = 0;
+    private record Columns(List<Integer> left, List<Integer> right) {
+    }
+
+    private static Columns readFile() {
         List<Integer> left = new ArrayList<>();
         List<Integer> right = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new FileReader("src/main/java/org/example/day1/input.txt"))) {
@@ -18,42 +20,41 @@ public class HistorianHysteria {
                         left.add(Integer.valueOf(vals[0]));
                         right.add(Integer.valueOf(vals[1]));
                     });
-        } catch (IOException e) {
+        } catch (IOException ignored) {
         }
+        return new Columns(left, right);
+    }
+
+    private static int distanceCounter() {
+        var columns = readFile();
+        List<Integer> left = columns.left;
+        List<Integer> right = columns.right;
+        int distance = 0;
         while (left.size() != 0) {
             Integer minLeft = Collections.min(left);
             Integer minRight = Collections.min(right);
             left.remove(minLeft);
             right.remove(minRight);
-            int distanceChange = minLeft - minRight;
-            distanceChange = distanceChange < 0 ? distanceChange * -1 : distanceChange;
-            distance = distance + distanceChange;
+            int distanceChange = Math.abs(minLeft - minRight);
+            distance += distanceChange;
         }
 
         return distance;
     }
 
     private static int similarityScore() {
+        var columns = readFile();
+        List<Integer> left = columns.left;
+        List<Integer> right = columns.right;
         int similarityScore = 0;
-        try (BufferedReader br = new BufferedReader(new FileReader("src/main/java/org/example/day1/input.txt"))) {
-            List<Integer> left = new ArrayList<>();
-            List<Integer> right = new ArrayList<>();
-            br.lines().map(line -> line.split("\\s+"))
-                    .forEach(vals -> {
-                        left.add(Integer.valueOf(vals[0]));
-                        right.add(Integer.valueOf(vals[1]));
-                    });
-            similarityScore = left.stream()
-                    .map(leftNumber -> leftNumber * Collections.frequency(right, leftNumber))
-                    .reduce(0, Integer::sum);
-        } catch (IOException e) {
-
-        }
+        similarityScore = left.stream()
+                .map(leftNumber -> leftNumber * Collections.frequency(right, leftNumber))
+                .reduce(0, Integer::sum);
         return similarityScore;
     }
 
     public static void main(String[] args) {
-        System.out.println(distanceCounterPart1());
+        System.out.println(distanceCounter());
         System.out.println(similarityScore());
     }
 }
