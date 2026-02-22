@@ -1,4 +1,4 @@
-package org.example.day1;
+package org.example.aoc2024.day1;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
